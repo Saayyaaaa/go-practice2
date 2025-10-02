@@ -1,32 +1,19 @@
-package main //Programs start running in package main.
+package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+
+	"go-practice2/internal/handlers"
+	"go-practice2/internal/middleware"
 )
 
-func helloHandler(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintf(w, "Hello, World!")
-
-}
-
-func handleRequest(w http.ResponseWriter, r *http.Request) {
-
-	switch r.Method {
-	case http.MethodGet:
-		fmt.Fprintln(w, "GET Request")
-
-	case http.MethodPost:
-		fmt.Fprintln(w, "POST Request")
-
-	default:
-		fmt.Fprintf(w, "Method not allowed", http.StatusMethodNotAllowed)
-	}
-}
-
 func main() {
+	mux := http.NewServeMux()
 
-	http.HandleFunc("/hello", helloHandler)
-	http.HandleFunc("/user", handleRequest)
-	http.ListenAndServe(":8080", nil)
+	mux.Handle("/user", middleware.APIKeyMiddleware(http.HandlerFunc(handlers.UserHandler)))
+
+	fmt.Println("Server is running on :8080")
+	log.Fatal(http.ListenAndServe(":8080", mux))
 }

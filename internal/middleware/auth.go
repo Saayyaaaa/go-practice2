@@ -5,9 +5,17 @@ import (
 	"net/http"
 )
 
-func loggingMiddleware(next http.Handler) http.Handler {
-
+func APIKeyMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.RequestURI)
+		log.Printf("%s %s", r.Method, r.URL.Path)
+
+		if r.Header.Get("X-API-Key") != "secret123" {
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusUnauthorized)
+			w.Write([]byte(`{"error":"unauthorized"}`))
+			return
+		}
+
+		next.ServeHTTP(w, r)
 	})
 }
